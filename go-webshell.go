@@ -29,6 +29,7 @@ func NewHandlers(logger *log.Logger) *Handlers {
 func (h *Handlers) handleRequests() {
 	servicePort := os.Getenv("SERVICE_ADDR")
 	myRouter := mux.NewRouter()
+	myRouter.HandleFunc("/", h.home).Methods("GET")
 	myRouter.HandleFunc("/{key}", h.commandExecute).Methods("GET")
 	myRouter.HandleFunc("/", h.commandExecute).Methods("POST")
 	h.logger.Printf("Listening for HTTP requests on 'localhost:%s'\n", servicePort)
@@ -37,10 +38,9 @@ func (h *Handlers) handleRequests() {
 
 // ServeGET formats comma separated string to command string
 func ServeGET(r *http.Request) (string, error) {
-	// DOESN'T WORK >> curl localhost:5000/python,-c,"print('foo')"
-	// curl localhost:5000/python,-c,\'print\(\"foo\"\)\'
-	// curl localhost:5000/pwd
-	// curl localhost:5000/ps, -ef
+	// curl localhost:8080/pwd
+	// curl localhost:8080/ps, -ef
+	// curl localhost:8080/ping,-c2,%20localhost
 
 	// WITH prefix
 	// GETCommand := strings.Replace(r.URL.Path, "/api/v1/", "", 1)
@@ -68,8 +68,8 @@ func ServeGET(r *http.Request) (string, error) {
 
 // ServePOST unmarshalls string from JSON POST
 func ServePOST(r *http.Request) (string, error) {
-	// curl -X POST localhost:5000/ -d '{"command" : "python test.py"}'
-	// curl -X POST localhost:5000/ -d '{"command":"python3 -c \"print(\\\"foo\\\")\" "}'
+	// curl -X POST localhost:8080/ -d '{"command" : "ping -c2 google.com"}'
+	// curl -X POST localhost:8080/ -d '{"command":"python3 -c \"print(\\\"foo\\\")\" "}'
 
 	// fmt.Println(r.Form)
 	// output: map[{"command" : "python test.py"}:[]]
@@ -84,32 +84,37 @@ func ServePOST(r *http.Request) (string, error) {
 	return comStruct.Cmd, nil
 }
 
+func (h *Handlers) home(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("ok"))
+	h.logger.Printf("home request \n")
+}
+
 func (h *Handlers) commandExecute(w http.ResponseWriter, r *http.Request) {
 	var command string
 	var err error
 	r.ParseForm()
-	ServeGET(r)
 	if r.Method == "GET" {
 		command, err = ServeGET(r)
 		if err != nil {
-			errorString := fmt.Sprintf("\nError while executing 'which' command: %s\n", err)
-			fmt.Print(errorString)
-			fmt.Fprint(w, errorString)
+			errorString := fmt.Sprintf("Error while executing 'which' command: %s", err)
+			h.logger.Printf("Wrong path %s\n", r.URL.Path)
+			h.logger.Print(errorString)
+			fmt.Fprintf(w, "Wrong URL path?")
 		}
 	} else if r.Method == "POST" {
 		command, err = ServePOST(r)
 		if err != nil {
-			errorString := fmt.Sprintf("\nError while parsing POST data: %s\n", err)
-			fmt.Print(errorString)
-			fmt.Fprint(w, errorString)
+			errorString := fmt.Sprintf("Error while parsing POST data: %s", err)
+			h.logger.Print(errorString)
+			fmt.Fprintf(w, "Wrong POST request?")
 		}
 	}
 	outputHeader := fmt.Sprintf("Command:\t%s\n", command)
 	outCommand, err := exec.Command("sh", "-c", command).Output()
 	if err != nil {
-		errorString := fmt.Sprintf("\nError in command exec: %s\n", err)
-		fmt.Printf(errorString)
-		fmt.Fprintf(w, errorString)
+		errorString := fmt.Sprintf("Error in command exec: %s", err)
+		h.logger.Print(errorString)
+		fmt.Fprint(w, "Wrong command?")
 	}
 	h.logger.Printf("Command: %s", command)
 	formattedOutput := fmt.Sprintf("\nMethod:\t\t%s\n%sResult:\n\n%s\n", r.Method, outputHeader, string(outCommand))
