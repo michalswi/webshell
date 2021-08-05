@@ -40,7 +40,8 @@ func (h *Handlers) handleRequests() {
 func ServeGET(r *http.Request) (string, error) {
 	// curl localhost:8080/pwd
 	// curl localhost:8080/ps, -ef
-	// curl localhost:8080/ping,-c2,%20localhost
+	// curl localhost:8080/ping,-c3,localhost
+	// curl localhost:8080/dig,+short,google.com
 
 	// WITH prefix
 	// GETCommand := strings.Replace(r.URL.Path, "/api/v1/", "", 1)
