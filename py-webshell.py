@@ -41,7 +41,7 @@ def commandExecute(command):
 @app.route('/<command>', methods = ['GET'])
 def getCommand(command = None):
     # curl -X GET localhost:5000/ps,-aux
-    # curl -X GET localhost:5000/python,-c,\'print\(\"foo\"\)\'
+    # curl -X GET localhost:5000/python3,-c,\'print\(\"foo\"\)\'
     if request.method == "GET" and command != None:
         validateComm = commandGetValidate(command)
         return commandExecute(validateComm)      
@@ -51,16 +51,12 @@ def getCommand(command = None):
 
 @app.route('/', methods = ['POST'])
 def postCommand():
-    # curl -X POST localhost:5000/ -d '{"command":"python test.py"}'
+    # curl -X POST localhost:5000/ -d '{"command":"python3 test.py"}'
     # curl -X POST localhost:5000/ -d '{"command":"python3 -c \"print(\\\"foo\\\")\" "}'
     if request.method == "POST":
         data = request.get_json(force=True)
         validateComm = commandPostValidate(data)
         return commandExecute(validateComm) 
 
-
-def main():
-    app.run(host = '0.0.0.0', port = SERVICE_PORT, debug = False)
-
 if __name__ == '__main__':
-    main()
+    app.run(host = '0.0.0.0', port = SERVICE_PORT, debug = False)

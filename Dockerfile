@@ -4,24 +4,21 @@ ARG ALPINE_VERSION
 # build
 FROM golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION} AS builder
 
+ARG VERSION
+ARG APPNAME
+
 RUN apk --no-cache add make git; \
-    adduser -D -h /tmp/dummy dummy
+    adduser -D -h /dummy dummy
 
 USER dummy
-
-WORKDIR /tmp/dummy
+WORKDIR /dummy
 
 COPY --chown=dummy Makefile Makefile
 COPY --chown=dummy go.mod go.mod
 COPY --chown=dummy go.sum go.sum
-
-RUN go mod download
-
-ARG VERSION
-ARG APPNAME
-
 COPY --chown=dummy go-webshell.go main.go
 
+RUN go mod download
 RUN make go-build
 
 # execute
@@ -32,6 +29,10 @@ ARG APPNAME
 
 ENV SERVICE_ADDR "8080"
 
-COPY --from=builder /tmp/dummy/${APPNAME}-${VERSION} /usr/bin/${APPNAME}
+RUN adduser -D -h /dummy dummy
+USER dummy
+WORKDIR /dummy
 
-CMD ["webshell"]
+COPY --from=builder /dummy/${APPNAME}-${VERSION} ./${APPNAME}
+
+CMD ["./webshell"]
