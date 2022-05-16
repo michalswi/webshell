@@ -28,12 +28,12 @@ help:
 test:
 	go test -v ./...
 
-go-run: 		## Run - no binary
+go-run: ## Run - no binary
 	$(info -run - no binary-)
 	SERVICE_ADDR=$(SERVICE_ADDR) \
 	go run .	
 
-go-build: 		## Build binary
+go-build: ## Build binary
 	$(info -build binary-)
 	CGO_ENABLED=0 \
 	go build \
@@ -42,7 +42,7 @@ go-build: 		## Build binary
 	-X '$(GIT_REPO)/version.BuildTime=$(BUILD_TIME)'" \
 	-o $(APPNAME)-$(VERSION) .
 
-docker-build:	## Build docker image
+docker-build: ## Build docker image
 	$(info -build docker image-)
 	docker build \
 	--pull \
@@ -56,24 +56,24 @@ docker-build:	## Build docker image
 	--tag="$(DOCKER_REPO)/$(APPNAME):$(VERSION)" \
 	.
 
-docker-run:		## Once docker image is ready run with default parameters (or overwrite)
+docker-run: ## Run docker container with default parameters (or overwrite)
 	$(info -run docker-)
 	docker run -d --rm \
 	--name $(APPNAME) \
 	-p $(SERVICE_ADDR):$(SERVICE_ADDR) \
 	$(DOCKER_REPO)/$(APPNAME):latest
 
-docker-stop:	## Stop running docker
+docker-stop: ## Stop docker container
 	$(info -stop docker-)
 	docker stop $(APPNAME)
 
-azure-rg:	## Create Azure Resource Group
+azure-rg: ## Create Azure Resource Group
 	az group create --name $(AZ_RG) --location $(AZ_LOCATION)
 
-azure-rg-del:	## Delete Azure Resource Group
+azure-rg-del: ## Delete Azure Resource Group
 	az group delete --name $(AZ_RG)
 
-azure-aci:	## Run app (Azure Container Instance)
+azure-aci: ## Run app (Azure Container Instance)
 	az container create \
 	--resource-group $(AZ_RG) \
 	--name $(APPNAME) \
@@ -85,12 +85,12 @@ azure-aci:	## Run app (Azure Container Instance)
 	--environment-variables \
 		SERVICE_ADDR=80
 
-azure-aci-logs:	## Get app logs (Azure Container Instance)
+azure-aci-logs: ## Get app logs (Azure Container Instance)
 	az container logs \
 	--resource-group $(AZ_RG) \
 	--name $(APPNAME)
 
-azure-aci-delete:	## Delete app (Azure Container Instance)
+azure-aci-delete: ## Delete app (Azure Container Instance)
 	az container delete \
 	--resource-group $(AZ_RG) \
 	--name $(APPNAME)
